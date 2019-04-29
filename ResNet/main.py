@@ -1,26 +1,57 @@
-import numpy
-from keras.datasets import mnist
-from keras.models import Sequential, Input,Model
-from keras.layers import Dense, Flatten, Activation, Dropout, LeakyReLU, BatchNormalization, Add, MaxPool2D, Concatenate, AveragePooling2D
-from keras.layers.convolutional import Conv2D
+
+import numpy as np
+from keras.models import Sequential,Model
+from keras.layers import Conv2D, MaxPool2D, Deconv2D, Cropping2D
+from keras.layers import Input, Add, Dropout, Permute,  LeakyReLU, BatchNormalization, AveragePooling2D
+from keras.layers import Dense, Flatten, Activation, Dropout, Embedding, Add,Concatenate,MaxPool2D
 from keras.utils import np_utils
+from keras.preprocessing.image import ImageDataGenerator
 
 
 
-numpy.random.seed(42)
+np.random.seed(42)
 
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
 
-X_train = X_train.astype('float32')
-X_test = X_test.astype('float32')
-X_train /= 255.0
-X_test /= 255.0
+# Каталог с данными для обучения
+train_dir = '/Users/olgalavricenko/Documents/duckscapes/train'
+# Каталог с данными для проверки
+val_dir = '/Users/olgalavricenko/Documents/duckscapes/val'
+# Каталог с данными для тестирования
+test_dir = '/Users/olgalavricenko/Documents/duckscapes/val'
+# Размеры изображения
+img_width, img_height = 150, 150
+# Размерность тензора на основе изображения для входных данных в нейронную сеть
+# backend Tensorflow, channels_last
+input_shape = (img_width, img_height, 3)
+# Количество эпох
+epochs = 30
+# Размер мини-выборки
+batch_size = 16
+# Количество изображений для обучения
+nb_train_samples = 69972
+# Количество изображений для проверки
+nb_validation_samples = 1372
+# Количество изображений для тестирования
+nb_test_samples = 1372
 
-X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
-X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+datagen = ImageDataGenerator(rescale=1. / 255)
+train_generator = datagen.flow_from_directory(
+                                              train_dir,
+                                              target_size=(img_width, img_height),
+                                              batch_size=batch_size,
+                                              class_mode='binary')
 
-Y_train = np_utils.to_categorical(y_train, 10)
-Y_test = np_utils.to_categorical(y_test, 10)
+val_generator = datagen.flow_from_directory(
+                                            val_dir,
+                                            target_size=(img_width, img_height),
+                                            batch_size=batch_size,
+                                            class_mode='binary')
+
+test_generator = datagen.flow_from_directory(
+                                             test_dir,
+                                             target_size=(img_width, img_height),
+                                             batch_size=batch_size,
+                                             class_mode='binary')
 
 def ResConv(kol_kanal , inp ):
     a = Conv2D(kol_kanal,(1,1) ,padding="same", activation="relu", input_shape=(1,320,320) )(inp)
@@ -30,7 +61,7 @@ def ResConv(kol_kanal , inp ):
     e=Activation('relu')(d)
     return e
 
-input_shape=(28,28,1)
+input_shape=(150,150,3)
 inp0=Input(input_shape)
 
 model = Sequential()
@@ -49,14 +80,20 @@ a=Flatten()(a)
 a=Dense(1000,activation='relu' )(a)
 
 a=Dropout(0.4)(a)
-a=Dense(10,activation='softmax')(a)
+a=Dense(1,activation='softmax')(a)
 
 model = Model(inp0, a)
 
-model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+model.compile(loss="sparse_categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 print(model.summary())
-model.fit(X_train, Y_train, batch_size=32, epochs=25, validation_split=0.1, shuffle=True)
 
-scores = model.evaluate(X_test, Y_test, verbose=0)
-print("Точность работы на тестовых данных: %.2f%%" % (scores[1]*100))
 
+model.fit_generator(
+                    train_generator,
+                    steps_per_epoch=nb_train_samples // batch_size,
+                    epochs=epochs,
+                    validation_data=val_generator,
+                    validation_steps=nb_validation_samples // batch_size)
+
+scores = model.evaluate_generator(test_generator, nb_test_samples // batch_size)
+print("Аккуратность на тестовых данных: %.2f%%" % (scores[1]*100))
