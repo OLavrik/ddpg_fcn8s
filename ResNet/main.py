@@ -6,32 +6,32 @@ from keras.layers import Input, Add, Dropout, Permute,  LeakyReLU, BatchNormaliz
 from keras.layers import Dense, Flatten, Activation, Dropout, Embedding, Add,Concatenate,MaxPool2D
 from keras.utils import np_utils
 from keras.preprocessing.image import ImageDataGenerator
-
+import tensorflow as tf
 
 
 np.random.seed(42)
 
 
-# Каталог с данными для обучения
-train_dir = '/Users/olgalavricenko/Documents/duckscapes/train'
-# Каталог с данными для проверки
-val_dir = '/Users/olgalavricenko/Documents/duckscapes/val'
-# Каталог с данными для тестирования
-test_dir = '/Users/olgalavricenko/Documents/duckscapes/val'
-# Размеры изображения
+session_config = tf.ConfigProto( )
+train_dir = 'cloud_data/duckscapes/train'
+
+val_dir = 'cloud_data/duckscapes/val'
+
+test_dir = 'cloud_data/duckscapes/val'
+
 img_width, img_height = 150, 150
-# Размерность тензора на основе изображения для входных данных в нейронную сеть
-# backend Tensorflow, channels_last
+
+
 input_shape = (img_width, img_height, 3)
-# Количество эпох
+
 epochs = 30
-# Размер мини-выборки
+
 batch_size = 16
-# Количество изображений для обучения
+
 nb_train_samples = 69972
-# Количество изображений для проверки
+
 nb_validation_samples = 1372
-# Количество изображений для тестирования
+
 nb_test_samples = 1372
 
 datagen = ImageDataGenerator(rescale=1. / 255)
@@ -96,4 +96,4 @@ model.fit_generator(
                     validation_steps=nb_validation_samples // batch_size)
 
 scores = model.evaluate_generator(test_generator, nb_test_samples // batch_size)
-print("Аккуратность на тестовых данных: %.2f%%" % (scores[1]*100))
+print( (scores[1]*100))
