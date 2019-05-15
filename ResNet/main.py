@@ -10,7 +10,7 @@ import tensorflow as tf
 
 
 import os
-from tqdm import tqdm_notebook, tnrange
+
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 from skimage.transform import resize
 from sklearn.model_selection import train_test_split
@@ -20,8 +20,8 @@ np.random.seed(42)
 im_width = 150
 im_height = 150
 border = 5
-path_train = '/home/olgalavricenko/data_set/DuckData/train/'
-path_test = '/home/olgalavricenko/data_set/DuckData/val.'
+path_train = '/Users/olgalavricenko/Documents/DuckData/train/'
+path_test = './Users/olgalavricenko/Documents/DuckData/val.'
 
 def get_data(path, train=True):
     ids = next(os.walk(path + "image"))[2]
@@ -43,6 +43,7 @@ def get_data(path, train=True):
     else:
         return X
 X, y = get_data(path_train, train=True)
+
 
 
 def ResConv(kol_kanal, inp):
