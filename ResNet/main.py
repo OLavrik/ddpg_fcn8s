@@ -93,7 +93,7 @@ a = ResDeConv(a)
 a = Conv2D(131, (1, 1), padding="same", activation="relu")(a)
 a = Cropping2D((3, 3))(a)
 a = UpSampling2D((2, 2))(a)
-a = Conv2D(1, (1, 1), padding="same", activation="relu")(a)
+a = Conv2D(4, (1, 1), padding="same", activation="relu")(a)
 
 model = Model(inp0, a)
 
