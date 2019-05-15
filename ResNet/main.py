@@ -105,3 +105,8 @@ model.fit_generator(
 
 scores = model.evaluate_generator(test_generator, nb_test_samples // batch_size)
 print( (scores[1]*100))
+
+image_file_name = '/Users/olgalavricenko/vtrain.png'
+img = cv2.imread(image_file_name)
+cv2.imshow('img',img)
+cv2.waitKey(0)
