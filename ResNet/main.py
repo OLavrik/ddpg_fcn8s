@@ -14,11 +14,11 @@ np.random.seed(42)
 a=Cropping2D()
 
 session_config = tf.ConfigProto( )
-train_dir = 'data_set/DuckData/train'
+train_dir = '~/data_set/DuckData/train'
 
-val_dir = 'data_set/DuckData/val'
+val_dir = '~/data_set/DuckData/val'
 
-test_dir = 'data_set/DuckData/val'
+test_dir = '~/data_set/DuckData/val'
 
 img_width, img_height = 150, 150
 
@@ -29,7 +29,7 @@ epochs = 30
 
 batch_size = 16
 
-nb_train_samples = 69972
+nb_train_samples = 3001
 
 nb_validation_samples = 1372
 
