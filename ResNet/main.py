@@ -9,50 +9,40 @@ from keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 
 
+import os
+from tqdm import tqdm_notebook, tnrange
+from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+from skimage.transform import resize
+from sklearn.model_selection import train_test_split
+
+from scipy.io import loadmat
 np.random.seed(42)
+im_width = 150
+im_height = 150
+border = 5
+path_train = '/home/olgalavricenko/data_set/DuckData/train/'
+path_test = '/home/olgalavricenko/data_set/DuckData/val.'
 
-a=Cropping2D()
+def get_data(path, train=True):
+    ids = next(os.walk(path + "image"))[2]
+    X = np.zeros((len(ids), im_height, im_width, 1), dtype=np.float32)
+    if train:
+        y = np.zeros((len(ids), im_height, im_width, 1), dtype=np.float32)
+    print('Getting and resizing images ... ')
+    for n, id_ in tqdm_notebook(enumerate(ids), total=len(ids)):
+           img = load_img(path + '/image/' + id_, grayscale=True)
+    x_img = img_to_array(img)
+    x_img = resize(x_img, (150, 150, 1), mode='constant', preserve_range=True)
 
-session_config = tf.ConfigProto( )
-train_dir = '/home/olgalavricenko/data_set/DuckData/train'
+    if train:
+        mask = img_to_array(load_img(path + '/segm/' + id_, grayscale=True))
+    mask = resize(mask, (150, 150, 1), mode='constant', preserve_range=True)
 
-val_dir = '/home/olgalavricenko/data_set/DuckData/val'
-
-test_dir = '/home/olgalavricenko/data_set/DuckData/val'
-
-img_width, img_height = 150, 150
-
-
-input_shape = (img_width, img_height, 3)
-
-epochs = 30
-
-batch_size = 16
-
-nb_train_samples = 3001
-
-nb_validation_samples = 1372
-
-nb_test_samples = 1372
-
-datagen = ImageDataGenerator(rescale=1. / 255)
-train_generator = datagen.flow_from_directory(
-                                              train_dir,
-                                              target_size=(img_width, img_height),
-                                              batch_size=batch_size,
-                                              class_mode='binary')
-
-val_generator = datagen.flow_from_directory(
-                                            val_dir,
-                                            target_size=(img_width, img_height),
-                                            batch_size=batch_size,
-                                            class_mode='binary')
-
-test_generator = datagen.flow_from_directory(
-                                             test_dir,
-                                             target_size=(img_width, img_height),
-                                             batch_size=batch_size,
-                                             class_mode='binary')
+    if train:
+        return X, y
+    else:
+        return X
+X, y = get_data(path_train, train=True)
 
 
 def ResConv(kol_kanal, inp):
@@ -73,7 +63,7 @@ def ResDeConv(inp):
     return d
 
 
-input_shape = (150, 150, 3)
+input_shape = (150, 150, 1)
 inp0 = Input(input_shape)
 
 model = Sequential()
@@ -93,7 +83,7 @@ a = ResDeConv(a)
 a = Conv2D(131, (1, 1), padding="same", activation="relu")(a)
 a = Cropping2D((3, 3))(a)
 a = UpSampling2D((2, 2))(a)
-a = Conv2D(4, (1, 1), padding="same", activation="relu")(a)
+a = Conv2D(1, (1, 1), padding="same", activation="relu")(a)
 
 model = Model(inp0, a)
 
